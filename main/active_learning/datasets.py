@@ -9,7 +9,7 @@
 import torch
 from torch.utils.data import TensorDataset
 import random
-
+import numpy as np
 
 class ALDataset(torch.utils.data.Dataset):
     def __init__(self, input_ids, attention_masks, labels):

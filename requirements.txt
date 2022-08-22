@@ -14,7 +14,10 @@ debugpy @ file:///C:/ci/debugpy_1637091961445/work
 decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
 entrypoints @ file:///C:/ci/entrypoints_1649926621128/work
 executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
+filelock==3.8.0
 fonttools==4.35.0
+greenlet==1.1.2
+huggingface-hub==0.8.1
 idna==3.3
 ipykernel @ file:///C:/ci/ipykernel_1646982785443/work/dist/ipykernel-6.9.1-py3-none-any.whl
 ipython @ file:///C:/ci/ipython_1651601994004/work
@@ -47,22 +50,31 @@ pyparsing==3.0.9
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2022.2.1
 pywin32==302
+PyYAML==6.0
 pyzmq @ file:///C:/ci/pyzmq_1638435148211/work
 regex==2022.7.25
 requests==2.28.1
+scikit-learn==1.1.2
+scipy==1.9.0
+seaborn==0.11.2
 six @ file:///tmp/build/80754af9/six_1644875935023/work
+sklearn==0.0
 smart-open==5.2.1
 soupsieve==2.3.2.post1
 spacy==3.4.1
 spacy-legacy==3.0.9
 spacy-loggers==1.0.3
+SQLAlchemy==1.4.40
 srsly==2.4.4
 stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
 thinc==8.1.0
+threadpoolctl==3.1.0
+tokenizers==0.12.1
 torch==1.12.1
 tornado @ file:///C:/ci/tornado_1606924294691/work
 tqdm==4.64.0
 traitlets @ file:///tmp/build/80754af9/traitlets_1636710298902/work
+transformers==4.21.1
 typer==0.4.2
 typing_extensions==4.3.0
 urllib3==1.26.11

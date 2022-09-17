@@ -74,25 +74,29 @@ def init_dataloader(data, batch_size, type='random'):
 
 
 def train(model, dataloader, epochs, lr, device):
-    size = len(dataloader.dataset)
-    print(f"Seed Size: {size} instances")
+    size = len(dataloader.dataset[0])
+    print(f"Dataset Size: {size} instances")
     cum_rmse = 0  # cumulative RMSE
-
-    # intitiate a dataloader with all the labeled data
-    # dataloader = init_dataloader(labeled_data, train_batch_size, type='random')
 
     # initiate optimizer and loss, set model to training mode
     optimizer = Adam(model.parameters(), lr=lr)
     loss_fn = MSELoss()
-    model.train()
+    model.train()                       # sets model into training mode
 
     for e in range(epochs):
         for X, _, y in dataloader:
             X, y = X.to(device), y.to(device)
             y = convert2float(y)  # convert to float tensor
             out = model(X)  # forward pass
-            pred = convert2float(out.logits.flatten())  # extract predictions, convert to Float
+
+            # toDO: check when we need to flatten and when not
+            #pred = convert2float(out.logits.flatten())  # extract predictions, convert to Float
+            pred = convert2float(out['logits'])
             loss = loss_fn(pred, y)  # compute loss
+            # store loss
+            # loss_float = float(loss.data)
+            # loss_float = float(loss.data)
+            print('Current loss', float(loss.data))
             optimizer.zero_grad()  # clean out previous gradients
             loss.backward()  # backpropagate loss
             optimizer.step()  # update weights
@@ -135,7 +139,14 @@ def make_choices(al_rank_idxs, batch_size, pool):
 
 def experiment_AL(seed, pool, test_set, model, query_method, lr, batch_size, device):
     """
-    seed: ALDataset object that
+    seed: ALDataset object that contains the initial seed (size equals to the batch_size)
+    pool: remaining part of the ALDataset
+    test_set: TensorDataset that contains the testing data, which is not split into seed and pool
+    model: the intialized BERT instance
+    query_method: str describing the method, e.g., random vs. eff etc..
+    lr: float representing the learning rate
+    batch_size: int representing the batch size
+    device: cpu or gpu
     """
 
     train_rmse_curve = []

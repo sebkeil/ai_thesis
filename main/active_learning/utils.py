@@ -9,6 +9,7 @@ from torch.nn import MSELoss
 from .algorithms import monte_carlo_dropout, farthest_first
 import matplotlib.pyplot as plt
 
+
 def seed_pool_split(input_ids, attention_masks, labels, seed_size, random_state):
   input_ids_seed, input_ids_pool = train_test_split(input_ids.numpy(), train_size=seed_size, random_state=random_state)
   attention_masks_seed, attention_masks_pool = train_test_split(attention_masks.numpy(), train_size=seed_size, random_state=random_state)
@@ -72,10 +73,10 @@ def init_dataloader(data, batch_size, type='random'):
     return dataloader
 
 
-
 def train(model, dataloader, epochs, lr, device):
-    size = len(dataloader.dataset[0])
+    size = len(dataloader.dataset)
     print(f"Dataset Size: {size} instances")
+
     cum_rmse = 0  # cumulative RMSE
 
     # initiate optimizer and loss, set model to training mode
@@ -88,14 +89,9 @@ def train(model, dataloader, epochs, lr, device):
             X, y = X.to(device), y.to(device)
             y = convert2float(y)  # convert to float tensor
             out = model(X)  # forward pass
+            pred = convert2float(out.logits.flatten())  # extract predictions, convert to Float
 
-            # toDO: check when we need to flatten and when not
-            #pred = convert2float(out.logits.flatten())  # extract predictions, convert to Float
-            pred = convert2float(out['logits'])
             loss = loss_fn(pred, y)  # compute loss
-            # store loss
-            # loss_float = float(loss.data)
-            # loss_float = float(loss.data)
             print('Current loss', float(loss.data))
             optimizer.zero_grad()  # clean out previous gradients
             loss.backward()  # backpropagate loss
@@ -108,6 +104,7 @@ def train(model, dataloader, epochs, lr, device):
     avg_rmse = (cum_rmse / size) / epochs
     print('Average RMSE: ', avg_rmse)
     return avg_rmse
+
 
 def test(model, dataloader, loss_fn, device):
     size = len(dataloader.dataset)

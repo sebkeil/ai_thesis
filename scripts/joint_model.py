@@ -37,6 +37,7 @@ va_labels = np.vstack((v_labels, a_labels)).T
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
 # Tokenize all of the sentences and map the tokens to their word IDs.
+# toDO: abstract this away into a function
 input_ids = []
 attention_masks = []
 # For every sentence...
@@ -90,37 +91,5 @@ va_test_ds_al = ALDataset(va_test_ds[0], va_test_ds[1], va_test_ds[2])
 va_dataloader = init_dataloader(va_train_ds_al, BATCH_SIZE, type='random')
 
 # run training
-rmse = train(va_model, va_dataloader, EPOCHS, LR, device)
+rmse = train(va_model, va_dataloader, EPOCHS, LR, device, joint=True)
 
-print('RMSE: ', rmse)
-
-
-# define joint BERT model
-# class JointBERT(torch.nn.Module):
-#
-#     def __init__(self, drop_rate=0.1):
-#         super(JointBERT,  self).__init__()
-#
-#         self.bert_base =
-#
-
-
-# # define joint BERT model
-# class CamembertRegressor(torch.nn.Module):
-#
-#     def __init__(self, drop_rate=0.2, freeze_camembert=False):
-#         super(CamembertRegressor, self).__init__()
-#         D_in, D_out = 768, 1
-#
-#         self.camembert = \
-#             CamembertModel.from_pretrained('camembert-base')
-#         self.regressor = nn.Sequential(
-#             nn.Dropout(drop_rate),
-#             nn.Linear(D_in, D_out))
-#
-#         def forward(self, input_ids, attention_masks):
-#
-#         outputs = self.camembert(input_ids, attention_masks)
-#         class_label_output = outputs[1]
-#         outputs = self.regressor(class_label_output)
-#         return outputsmodel = CamembertRegressor(drop_rate=0.2)

@@ -32,5 +32,6 @@ def plot_al_results(v_results, a_results, batch_size, lr):
     fig.text(0.5, 0.07, 'Number of Epochs', ha='center')
     fig.text(0.05, 0.5, 'RMSE', ha='center', va='center', rotation='vertical')
 
+   # plt.savefig(f'files/results/active_learning_experiments/al_exp_batch_size_{batch_size}_learning_rate_{lr}_fullsample.png')
     #plt.savefig(f'files/results/active_learning_experiments/al_exp_batch_size_{batch_size}_learning_rate_{lr}.png')
-    #plt.show()
+    plt.show()

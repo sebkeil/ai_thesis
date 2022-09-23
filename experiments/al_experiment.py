@@ -38,8 +38,9 @@ sent_df = pd.read_csv('files/datasets/labeled/l01_reuters_sample200.csv')
 
 # read in: next 800 labeled instances and join
 ### comment this out if only wanting to run the first iteration of the experiment ###
-# send_df2 = pd.read_csv('files/datasets/labeled/l02_reuters_sample800.csv')
-# sent_df = pd.concat([sent_df, send_df2], axis='rows',ignore_index=True)
+send_df2 = pd.read_csv('files/datasets/labeled/l02_reuters_sample800.csv')
+sent_df = pd.concat([sent_df, send_df2], axis='rows',ignore_index=True)
+
 
 # drop the miscellaneous instances
 sent_df = sent_df[sent_df['is_miscellaneous'] == False]
@@ -115,8 +116,8 @@ torch.cuda.manual_seed_all(RANDOM_STATE)
 # experiment parameters
 TRAIN_SIZE = 0.75
 methods = ['random', 'farthest-first', 'mc-dropout']
-batch_sizes = [16, 32, 64]  # , 32, 64
-lrs = [1e-5, 1e-6, 1e-7]  #
+batch_sizes = [2] #16]  # , 32, 64
+lrs = [1e-5]  # 1e-6, 1e-7
 
 # initiate results storage for valence and arousal models
 v_results, a_results = {}, {}
@@ -183,12 +184,13 @@ for batch_size in batch_sizes:
             a_seed_ds, a_pool_ds = ALDataset(a_seed[0], a_seed[1], a_seed[2]), ALDataset(a_pool[0], a_pool[1],
                                                                                          a_pool[2])
 
+
             # take a subsample only
             ### COMMENT THIS OUT TO TAKE WHOLE SAMPLE INTO CONSIDERATION ###
-            # SAMPLE_SIZE = 12
-            # RANDOM_SEED = 42
-            # v_pool_ds = v_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
-            # a_pool_ds = a_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
+            SAMPLE_SIZE = 6
+            RANDOM_SEED = 42
+            v_pool_ds = v_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
+            a_pool_ds = a_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
 
             print("Valence Sample Pool Size: ", len(v_pool_ds), "Arousal Sample Pool Size: ", len(a_pool_ds))
 
@@ -212,6 +214,7 @@ for batch_size in batch_sizes:
             # store results
             v_results[batch_size][lr][method]['train'], v_results[batch_size][lr][method][
                 'test'] = v_train_rmse_curve, v_test_loss_curve
+
             a_results[batch_size][lr][method]['train'], a_results[batch_size][lr][method][
                 'test'] = a_train_rmse_curve, a_test_loss_curve
 

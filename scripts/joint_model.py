@@ -11,15 +11,12 @@ from transformers import BertForSequenceClassification, BertTokenizer
 import pandas as pd
 import numpy as np
 from main.active_learning.datasets import ALDataset
-from main.active_learning.utils import seed_pool_split, init_dataloader, train
+from main.active_learning.utils import seed_pool_split, init_dataloader
+from main.joint_disjoint.utils import train_joint, train_disjoint, test_joint, test_disjoint
+from main.active_learning.utils import tokenize_sentences, set_device
 
 
-# put device onto GPU if available, else on CPU
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f'Using device: {device}')
-if torch.cuda.is_available():
-  print(f"GPU name: {torch.cuda.get_device_name()}")
-
+device = set_device()
 
 # read in the data
 sent_df = pd.read_csv('files/datasets/labeled/l01_reuters_sample200.csv')
@@ -36,38 +33,28 @@ va_labels = np.vstack((v_labels, a_labels)).T
 # tokenization
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
-# Tokenize all of the sentences and map the tokens to their word IDs.
-# toDO: abstract this away into a function
-input_ids = []
-attention_masks = []
-# For every sentence...
-for sent in sentences:
-    encoded_dict = tokenizer.encode_plus(
-        sent,  # Sentence to encode.
-        add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
-        max_length=70,  # Pad & truncate all sentences.
-        padding='max_length',
-        return_attention_mask=True,  # Construct attn. masks.
-        return_tensors='pt',  # Return pytorch tensors.
-    )
+# Tokenize all the sentences and map the tokens to their word IDs.
+MAX_LEN = 70
+input_ids, attention_masks = tokenize_sentences(tokenizer, sentences, MAX_LEN)
 
-    # Add the encoded sentence to the list.
-    input_ids.append(encoded_dict['input_ids'])
-    # And its attention mask (simply differentiates padding from non-padding).
-    attention_masks.append(encoded_dict['attention_mask'])
-
-# Convert the lists into tensors.
-input_ids = torch.cat(input_ids, dim=0)
-attention_masks = torch.cat(attention_masks, dim=0)
+# convert label arrays into tensors
+v_labels = torch.tensor(v_labels)
 va_labels = torch.tensor(va_labels)
 
-
 # define the joint model
-va_model = BertForSequenceClassification.from_pretrained(
-                'bert-base-uncased',
-                num_labels=2,
-                output_attentions=False,
-                output_hidden_states=True)
+# va_model = BertForSequenceClassification.from_pretrained(
+#              'bert-base-uncased',
+#              num_labels=2,
+#              output_attentions=False,
+#              output_hidden_states=True)
+
+# define the two disjoint models
+v_model = BertForSequenceClassification.from_pretrained(
+               'bert-base-uncased',
+               num_labels=1,
+               output_attentions=False,
+               output_hidden_states=True)
+
 
 
 # define dataset
@@ -82,14 +69,37 @@ LR = 1e-5
 va_train_ds, va_test_ds = seed_pool_split(input_ids, attention_masks, va_labels, seed_size=TRAIN_SIZE,
                                                     random_state=RANDOM_STATE)
 
+v_train_ds, v_test_ds = seed_pool_split(input_ids, attention_masks, v_labels, seed_size=TRAIN_SIZE, random_state=RANDOM_STATE)
+
+
 
 # NEW PART: initialize AL Dataset for training and testing data
 va_train_ds_al = ALDataset(va_train_ds[0], va_train_ds[1], va_train_ds[2])
 va_test_ds_al = ALDataset(va_test_ds[0], va_test_ds[1], va_test_ds[2])
 
+v_train_ds_al = ALDataset(v_train_ds[0], v_train_ds[1], v_train_ds[2])
+v_test_ds_al = ALDataset(v_test_ds[0], v_test_ds[1], v_test_ds[2])
+
 # initialize dataloader
 va_dataloader = init_dataloader(va_train_ds_al, BATCH_SIZE, type='random')
+va_test_dl = init_dataloader(va_test_ds_al, BATCH_SIZE, type='random')
+
+
+v_dataloader = init_dataloader(v_train_ds_al, BATCH_SIZE, type='random')
+v_test_dl = init_dataloader(v_test_ds_al, BATCH_SIZE, type='random')
+
 
 # run training
-rmse = train(va_model, va_dataloader, EPOCHS, LR, device, joint=True)
 
+# TRAIN JOINT MODEL
+# valence_rmse_curve_joint_train, arousal_rmse_curve_join_train = train_joint(va_model, va_dataloader, EPOCHS, LR, device)
+#
+# # TEST JOINT MODEL
+# valence_rmse_curve_join_test, arousal_rmse_curve_join_test = test_joint(va_model, va_test_dl, device)
+
+
+# TRAIN DISJOINT MODEL
+valence_rmse_curve_disjoint_train = train_disjoint(v_model, v_dataloader, EPOCHS, LR, device, 'valence')
+#
+# TEST DISJOINT MODEL
+valence_rmse_curve_disjoint_test = test_disjoint(v_model, v_test_dl, device, 'valence')

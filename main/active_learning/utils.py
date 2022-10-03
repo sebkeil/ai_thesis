@@ -8,7 +8,7 @@ from torch.optim import Adam
 from torch.nn import MSELoss
 from .algorithms import monte_carlo_dropout, farthest_first
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 def seed_pool_split(input_ids, attention_masks, labels, seed_size, random_state):
   input_ids_seed, input_ids_pool = train_test_split(input_ids.numpy(), train_size=seed_size, random_state=random_state)
@@ -262,3 +262,39 @@ def make_results_table(results, methods, batch_sizes, lrs):
           results_table[f'{method}_{batch_size}_{lr}_test'] = np.mean(results[method][batch_size][f'test_{lr}'])
     results_df = pd.Series(results_table).to_frame('Avg. RMSE')
     return results_table
+
+
+def tokenize_sentences(tokenizer, sentences, max_len):
+    input_ids = []
+    attention_masks = []
+    # For every sentence...
+    for sent in sentences:
+        encoded_dict = tokenizer.encode_plus(
+            sent,  # Sentence to encode.
+            add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
+            max_length=max_len,  # Pad & truncate all sentences.
+            padding='max_length',
+            return_attention_mask=True,  # Construct attn. masks.
+            return_tensors='pt',  # Return pytorch tensors.
+        )
+
+        # Add the encoded sentence to the list.
+        input_ids.append(encoded_dict['input_ids'])
+        # And its attention mask (simply differentiates padding from non-padding).
+        attention_masks.append(encoded_dict['attention_mask'])
+
+    # Convert the lists into tensors.
+    input_ids = torch.cat(input_ids, dim=0)
+    attention_masks = torch.cat(attention_masks, dim=0)
+
+    return input_ids, attention_masks
+
+
+def set_device():
+    # put device onto GPU if available, else on CPU
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'Using device: {device}')
+    if torch.cuda.is_available():
+      print(f"GPU name: {torch.cuda.get_device_name()}")
+
+    return device

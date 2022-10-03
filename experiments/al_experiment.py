@@ -26,6 +26,9 @@ from transformers import BertForSequenceClassification
 from main.active_learning.utils import seed_pool_split, experiment_AL
 from main.active_learning.datasets import ALDataset
 from main.active_learning.plotting import plot_al_results
+import pickle
+
+
 
 # put device onto GPU
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -116,7 +119,7 @@ torch.cuda.manual_seed_all(RANDOM_STATE)
 # experiment parameters
 TRAIN_SIZE = 0.75
 methods = ['random', 'farthest-first', 'mc-dropout']
-batch_sizes = [2] #16]  # , 32, 64
+batch_sizes = [16]  # , 32, 64
 lrs = [1e-5]  # 1e-6, 1e-7
 
 # initiate results storage for valence and arousal models
@@ -187,10 +190,11 @@ for batch_size in batch_sizes:
 
             # take a subsample only
             ### COMMENT THIS OUT TO TAKE WHOLE SAMPLE INTO CONSIDERATION ###
-            SAMPLE_SIZE = 6
+            SAMPLE_SIZE = 32
             RANDOM_SEED = 42
             v_pool_ds = v_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
             a_pool_ds = a_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
+
 
             print("Valence Sample Pool Size: ", len(v_pool_ds), "Arousal Sample Pool Size: ", len(a_pool_ds))
 
@@ -217,6 +221,30 @@ for batch_size in batch_sizes:
 
             a_results[batch_size][lr][method]['train'], a_results[batch_size][lr][method][
                 'test'] = a_train_rmse_curve, a_test_loss_curve
+
+
+            # write results to file
+            v_file_path = os.getcwd() + "\\files\\results\\active_learning_experiments\\logs\\valence_results.txt"
+            a_file_path = os.getcwd() + "\\files\\results\\active_learning_experiments\\logs\\arousal_results.txt"
+
+            with open(v_file_path, "a+") as v_file:
+                v_file.write(f"bs:{batch_size}_lr:{lr}_method:{method}_train" + "|" + f"{v_train_rmse_curve}" + "\n")
+                v_file.write(f"bs:{batch_size}_lr:{lr}_method:{method}_test" + "|" + f"{v_test_loss_curve}" + "\n")
+
+            with open(a_file_path, "a+") as a_file:
+                a_file.write(f"bs:{batch_size}_lr:{lr}_method:{method}_train" + "|" + f"{a_train_rmse_curve}" + "\n")
+                a_file.write(f"bs:{batch_size}_lr:{lr}_method:{method}_test" + "|" + f"{a_test_loss_curve}" + "\n")
+
+            # save models
+            v_model_path = os.getcwd() + f"\\models\\v_bs{batch_size}_lr{lr}_method{method}"
+            a_model_path = os.getcwd() + f"\\models\\a_bs{batch_size}_lr{lr}_method{method}"
+
+            with open(v_model_path, "wb+") as v_f:
+                pickle.dump(v_model, v_f)
+
+            with open(a_model_path, "wb+") as a_f:
+                pickle.dump(a_model, a_f)
+
 
 # produce graph
 for batch_size in batch_sizes:

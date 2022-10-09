@@ -92,7 +92,6 @@ def train(model, dataloader, epochs, lr, device):
             pred = convert2float(out.logits.flatten())  # extract predictions, convert to Float
 
             loss = loss_fn(pred, y)  # compute loss
-            print('Current loss', float(loss.data))
             optimizer.zero_grad()  # clean out previous gradients
             loss.backward()  # backpropagate loss
             optimizer.step()  # update weights

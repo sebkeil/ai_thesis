@@ -190,10 +190,10 @@ for batch_size in batch_sizes:
 
             # take a subsample only
             ### COMMENT THIS OUT TO TAKE WHOLE SAMPLE INTO CONSIDERATION ###
-            SAMPLE_SIZE = 32
-            RANDOM_SEED = 42
-            v_pool_ds = v_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
-            a_pool_ds = a_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
+            # SAMPLE_SIZE = 32
+            # RANDOM_SEED = 42
+            # v_pool_ds = v_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
+            # a_pool_ds = a_pool_ds.subsample(SAMPLE_SIZE, RANDOM_SEED)
 
 
             print("Valence Sample Pool Size: ", len(v_pool_ds), "Arousal Sample Pool Size: ", len(a_pool_ds))

@@ -27,7 +27,7 @@ sent_df = pd.read_csv('files/datasets/labeled/l01_reuters_sample200.csv')
 sent_df = sent_df[sent_df['is_miscellaneous'] == False]
 print(f'Total: {len(sent_df)} instances')
 
-#toDO: extend this to full 1000 instances
+# toDO: extend this to full 1000 instances
 
 
 # extract sentences and valence/arousal labels as numpy arrays

@@ -99,7 +99,7 @@ v_test_dl = init_dataloader(v_test_ds_al, BATCH_SIZE, type='random')
 
 
 # TRAIN DISJOINT MODEL
-valence_rmse_curve_disjoint_train = train_disjoint(v_model, v_dataloader, EPOCHS, LR, device, 'valence')
+valence_rmse_curve_disjoint_train = train_disjoint(v_model, v_dataloader, EPOCHS, LR, device, 'arousal')
 #
 # TEST DISJOINT MODEL
-valence_rmse_curve_disjoint_test = test_disjoint(v_model, v_test_dl, device, 'valence')
+valence_rmse_curve_disjoint_test = test_disjoint(v_model, v_test_dl, device, 'arousal')

@@ -1,5 +1,8 @@
 """
 File to run the experiment comparing joint and disjoint models by measuring RMSE error metric.
+
+Experiment results will be written to file in files/results/joint_disjoint_logs
+
 """
 
 # set the path to enable relative imports
@@ -24,10 +27,13 @@ DEVICE = set_device()
 
 # read in data
 sent_df = pd.read_csv('files/datasets/labeled/l01_reuters_sample200.csv')
+
+# toDO: extend this to full 1000 instances
+send_df2 = pd.read_csv('files/datasets/labeled/l02_reuters_sample800.csv')
+sent_df = pd.concat([sent_df, send_df2], axis='rows',ignore_index=True)
 sent_df = sent_df[sent_df['is_miscellaneous'] == False]
 print(f'Total: {len(sent_df)} instances')
 
-# toDO: extend this to full 1000 instances
 
 
 # extract sentences and valence/arousal labels as numpy arrays
@@ -88,7 +94,6 @@ v_train_ds, v_test_ds = seed_pool_split(input_ids, attention_masks, v_labels, se
 a_train_ds, a_test_ds = seed_pool_split(input_ids, attention_masks, a_labels, seed_size=TRAIN_SIZE, random_state=RANDOM_STATE)
 
 
-
 # initialize AL Dataset for training and testing data
 va_train_ds_al = ALDataset(va_train_ds[0], va_train_ds[1], va_train_ds[2])
 va_test_ds_al = ALDataset(va_test_ds[0], va_test_ds[1], va_test_ds[2])
@@ -108,11 +113,34 @@ v_train_dl = init_dataloader(v_train_ds_al, BATCH_SIZE, type='random')
 v_test_dl = init_dataloader(v_test_ds_al, BATCH_SIZE, type='random')
 
 a_train_dl = init_dataloader(a_train_ds_al, BATCH_SIZE, type='random')
-a_test_dl = init_dataloader(a_test_ds, BATCH_SIZE, type='random')
+a_test_dl = init_dataloader(a_test_ds_al, BATCH_SIZE, type='random')
 
 
-# start training
-valence_rmse_curve_joint_train, arousal_rmse_curve_join_train = train_joint(va_model, va_dataloader, EPOCHS, LR, device)
+# experiment main loop
+if __name__ == "__main__":
+    for model_name in models.keys():
+        if model_name == "va_joint":
+            print(f"Running experiment on {model_name}")
+            # TRAIN JOINT MODEL
+            valence_rmse_curve_joint_train, arousal_rmse_curve_join_train = train_joint(models[model_name], va_train_dl,
+                                                                                        EPOCHS, LR, DEVICE)
+            # TEST JOINT MODEL
+            valence_rmse_curve_join_test, arousal_rmse_curve_join_test = test_joint(models[model_name], va_test_dl, DEVICE)
 
+        if model_name == "v_disjoint":
+            print(f"Running experiment on {model_name}")
+            # TRAIN DISJOINT VALENCE MODEL
+            valence_rmse_curve_disjoint_train = train_disjoint(models[model_name], v_train_dl, EPOCHS, LR, DEVICE, 'valence')
 
+            # TEST DISJOINT VALENCE MODEL
+            valence_rmse_curve_disjoint_test = test_disjoint(models[model_name], v_test_dl, DEVICE, 'valence')
 
+        if model_name == "a_disjoint":
+            print(f"Running experiment on {model_name}")
+            # TRAIN DISJOINT VALENCE MODEL
+            arousal_rmse_curve_disjoint_train = train_disjoint(models[model_name], a_train_dl, EPOCHS, LR, DEVICE, 'arousal')
+
+            # TEST DISJOINT VALENCE MODEL
+            arousal_rmse_curve_disjoint_test = test_disjoint(models[model_name], a_test_dl, DEVICE, 'arousal')
+
+print("DONE!")

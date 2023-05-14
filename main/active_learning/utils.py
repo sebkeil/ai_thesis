@@ -214,7 +214,6 @@ def experiment_AL(seed, pool, test_set, model, query_method, lr, batch_size, dev
 
 
 
-
 def plot_AL_results(v_results, a_results, lr, batch_size):
     fig = plt.figure()
     ax1 = fig.add_axes([0, 1, 1, 1])

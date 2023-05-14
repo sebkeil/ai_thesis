@@ -7,13 +7,21 @@ import numpy as np
 from main.active_learning.utils import convert2float
 import os
 
-def train_joint(model, dataloader, epochs, lr, device):
+def train_joint(model, dataloader, epochs, lr, device, writefile=False):
     '''
     For the joint vs. disjoint experiments, we want to return error at each step.
-    We also want to divide error terms into valence and arousal part
+    We also want to divide error terms into valence and arousal part.
+    Returns rmse curves, segregated into valence and arousal parts for each epoch and batch.
+    Function also automatically writes results to a file.
 
+    :param model BERTmodel instance: the joint model to be trained, which has 2 output nodes
+    :param dataloader torch dataloader instance: the dataloader object
+    :param epochs int: number of training epochs
+    :param lr flaot: learning rate to be applied during training
+    :param device str: device which can be cpu or gpu
 
-    Returns rmse curves, segregated into valence and arousal parts for each epoch and batch
+    :return valence_rmse_curve dict: mapping epoch -> rmse curve (list)
+    :return arousal_rmse_curve dict: mapping epoch -> rmse curve (list)
     '''
 
     size = len(dataloader.dataset)
@@ -28,6 +36,9 @@ def train_joint(model, dataloader, epochs, lr, device):
     model.train()                       # sets model into training mode
 
     for e in range(epochs):
+
+        print(f'Starting epoch {e+1}/{epochs}')
+
         # initialize results for each epoch
         valence_rmse_curve[f'epoch_{e+1}'] = []
         arousal_rmse_curve[f'epoch_{e+1}'] = []
@@ -56,11 +67,12 @@ def train_joint(model, dataloader, epochs, lr, device):
 
             # compute (joint) loss and take optimzier step
             loss = loss_fn(pred, y)  # compute loss
-            print('Current loss', float(loss.data))
             optimizer.zero_grad()  # clean out previous gradients
             loss.backward()  # backpropagate loss
             optimizer.step()  # update weights
 
+        if not writefile:
+            continue
 
         # write results to files
         v_file_path = os.getcwd() + "\\files\\results\\joint_disjoint_logs\\v_joint_train.txt"
